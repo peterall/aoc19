@@ -7,9 +7,9 @@
             "args": [
                 "-g",
                 "${file}",
-                "-O3",
                 "-march=native",
                 "-std=c++17",
+                "-O3",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
@@ -20,6 +20,23 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "type": "shell",
+            "label": "clang++ debug build active file",
+            "command": "/usr/bin/clang++",
+            "args": [
+                "-g",
+                "${file}",
+                "-march=native",
+                "-std=c++17",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}"
+            ],
+            "options": {
+                "cwd": "/usr/bin"
+            },
+            "group": "build"
         }
     ],
     "version": "2.0.0"

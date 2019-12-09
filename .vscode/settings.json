@@ -7,6 +7,7 @@
         "vector": "cpp",
         "functional": "cpp",
         "map": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "deque": "cpp"
     }
 }
