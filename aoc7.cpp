@@ -8,6 +8,14 @@
 
 using namespace std;
 
+enum STATE {
+    UNINITIALIZED,
+    READY,
+    RUNNING,
+    WAIT_FOR_INPUT,
+    HALTED
+};
+
 class ShipComputer {
 private:
     enum OPCODE {
@@ -65,9 +73,13 @@ private:
     };
 
     void op_in() {
-        write<1>(input.front());
-        input.pop();
-        pc += 2;
+        if(input.empty()) {
+            state = WAIT_FOR_INPUT;
+        } else {
+            write<1>(input.front());
+            input.pop();
+            pc += 2;
+        }
     };
 
     template<MODE mode>
@@ -107,10 +119,11 @@ private:
     }
 
     void op_halt() {
-        pc = -1;
+        state = HALTED;
+        pc = 0;
     };
 
-
+    STATE state;
     vector<int> program;
     vector<int> memory;
     queue<int> input;
@@ -121,9 +134,11 @@ public:
     ShipComputer() {
     }
     ShipComputer(vector<int> &program) : program(program) {
+        reset();
     }
     void load(const string filename) {
         load_program(filename, program);
+        reset();
     }
     static void load_program(const string filename, vector<int> &program) {
         auto programfile = ifstream(filename);
@@ -151,6 +166,16 @@ public:
         output.pop();
         return value;
     }
+    void reset() {
+        memory = program;
+        output = queue<int>();
+        input = queue<int>();
+        pc = 0;
+        state = READY;
+    }
+    STATE get_state() const { 
+        return state;
+    }
 
 #define CASE_INSTR_0(name, fn) \
     case make_instr<name>(): fn(); break;
@@ -166,10 +191,8 @@ public:
     case make_instr<name, IMMEDIATE, IMMEDIATE>(): fn<IMMEDIATE,IMMEDIATE>(); break;
 
     void run() {
-        memory = program;
-        output = queue<int>();
-        pc = 0;
-        while(pc != -1) {
+        state = RUNNING;
+        while(state == RUNNING) {
             //dump();
             switch(memory[pc]) {
                 CASE_INSTR_2(ADD, op_add)
@@ -192,16 +215,23 @@ public:
 
 
 int test(vector<unique_ptr<ShipComputer>> &computers, vector<int> &phases) {
-    int signal = 0, index = 0;
+    int signal = 0, index = 0, iteration = 0;
     for(const auto &computer: computers) {
-        computer->write(phases[index++]);
-        computer->write(signal);
-        computer->run();
-        if(!computer->can_read()) {
-            cout << "No output from computer?!" << endl;
-            return -1;
+        computer->reset();
+    }
+    while(computers.back()->get_state() != HALTED) {
+        for(const auto &computer: computers) {
+            if(computer->get_state() == READY) {
+                computer->write(phases[index++]);
+            }
+            computer->write(signal);
+            computer->run();
+            if(!computer->can_read()) {
+                cout << "No output from computer?!" << endl;
+                return -1;
+            }
+            signal = computer->read();
         }
-        signal = computer->read();
     }
     return signal;
 }
@@ -214,7 +244,7 @@ int main(int argc, char *argv[]) {
         computers.push_back(make_unique<ShipComputer>(program));
     }
 
-    vector<int> phases = {0,1,2,3,4};
+    vector<int> phases = {5,6,7,8,9};
     int max_signal = 0;
     do {
         max_signal = max(max_signal, test(computers, phases));
