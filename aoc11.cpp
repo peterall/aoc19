@@ -312,14 +312,16 @@ int main(int argc, char *argv[]) {
 
     cout << "total painted:" << hull.size() << endl;
 
-    int offsetx = 0, offsety = 0;
+    int offsetx = INT_MAX, offsety = INT_MAX, limitx = INT_MIN, limity = INT_MIN;
     for(const auto &p: hull) {
         offsetx = min(p.first.first, offsetx);
         offsety = min(p.first.second, offsety);
+        limitx = max(p.first.first, limitx);
+        limity = max(p.first.second, limity);
     }
 
-    for(int y=offsety-1;y<(offsety+10);y++) {
-        for(int x=offsetx-1;x<(offsetx+30);x++) {
+    for(int y=offsety-1;y<limity+2;y++) {
+        for(int x=offsetx-1;x<limitx+2;x++) {
             cout << ((hull.count(make_pair(x,y)) > 0 && hull[make_pair(x,y)]) ? "X" : " ");
         }
         cout << endl;
