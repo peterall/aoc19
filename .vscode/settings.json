@@ -64,6 +64,8 @@
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "unordered_map": "cpp",
-        "memory_resource": "cpp"
+        "memory_resource": "cpp",
+        "iomanip": "cpp",
+        "numeric": "cpp"
     }
 }
